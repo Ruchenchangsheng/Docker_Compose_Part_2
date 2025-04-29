@@ -3,24 +3,33 @@ import requests
 import os
 
 app = Flask(__name__)
-API_KEY = os.getenv("58d10a9101aac36473b919102c658c06")
+
+CITY = "Vladimir,RU"
+API_KEY = "58d10a9101aac36473b919102c658c06"
 
 
-@app.route("/weather")
+@app.route('/weather')
 def get_weather():
-    lat = 55.75  # Moscow
-    lon = 37.61
-    url = f"https://api.openweathermap.org/data/3.0/onecall?lat={lat}&lon={lon}&exclude=minutely,hourly,daily,alerts&appid={API_KEY}&units=metric"
+    url = f"http://api.openweathermap.org/data/2.5/weather?q={CITY}&appid={API_KEY}&units=metric&lang=ru"
 
-    response = requests.get(url)
-    data = response.json()
+    try:
+        response = requests.get(url)
+        data = response.json()
 
-    return jsonify({
-        "temperature": data["current"]["temp"],
-        "description": data["current"]["weather"][0]["description"],
-        "humidity": data["current"]["humidity"]
-    })
+        return jsonify({
+            "версия приложения": "v1.0.1",
+            "город": data['name'],
+            "страна": data['sys']['country'],
+            "температура": f"{data['main']['temp']}°C",
+            "ощущается": f"{data['main']['feels_like']}°C",
+            "погода": data['weather'][0]['description'],
+            "влажность": f"{data['main']['humidity']}%",
+            "ветер": f"{data['wind']['speed']} м/с",
+            "обновлено": data['dt']
+        })
+    except Exception as e:
+        return jsonify({"ошибка": str(e)}), 500
 
 
-if __name__ == "__main__":
-    app.run(host="0.0.0.0", port=5000)
+if __name__ == '__main__':
+    app.run(host='0.0.0.0', port=5000)
