@@ -24,3 +24,25 @@ jobs:
           context: .
           push: true
           tags: ${{ secrets.DOCKER_USERNAME }}/weather-app:latest,${{ secrets.DOCKER_USERNAME }}/weather-app:${{ github.event.release.tag_name }}
+
+      # 步骤3：生成镜像标签
+      - name: Generate Image Metadata
+        uses: docker/metadata-action@v4
+        id: meta
+        with:
+          images: ${{ secrets.DOCKER_USERNAME }}/homework_docker_compose_part2
+          tags: |
+            type=ref,event=tag
+            type=semver,pattern={{version}}
+            type=semver,pattern={{major}}.{{minor}}
+            type=sha
+
+      # 步骤4：构建并推送镜像
+      - name: Build and Push
+        uses: docker/build-push-action@v4
+        with:
+          context: .
+          file: ./Dockerfile
+          push: true
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}
